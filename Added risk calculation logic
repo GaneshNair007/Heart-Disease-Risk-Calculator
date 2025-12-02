@@ -1,0 +1,136 @@
+import sys
+
+patients = {}
+
+# Tuple of symptoms
+symptoms = ("chest pain", "Breathlessness", "Fatigue", "Dizziness", "Sweating", "Nausea")
+
+def get_patient_info():
+    print("\n--- PATIENT INFORMATION ---")
+    name = input("Enter name: ")
+    
+    try:
+        age = int(input("Enter Age: "))
+        if age <= 0 or age > 120:
+            print("Invalid age! Using default 30")
+            age = 30
+    except ValueError:
+        print("Invalid input! Using default age 30")
+        age = 30 
+        
+    gender = input("Enter gender (M/F): ")
+    if gender not in ['M', 'F']:
+        gender = 'M'
+    
+    return name, age, gender
+
+def get_health_data():
+    print("\n--- HEALTH PARAMETERS ---") 
+    data = {}
+    
+    try:
+        data['bp'] = float(input("Blood Pressure (e.g., 120): "))
+        data['cholesterol'] = float(input("Cholesterol (e.g., 200): "))
+        data['sugar'] = float(input("Blood Sugar (e.g., 100): "))
+        data['heart_rate'] = int(input("Heart Rate (e.g., 72): "))
+        
+        smoke = input("Do you smoke (yes/no): ").lower()
+        data['smoking'] = True if smoke == 'yes' else False
+        
+        exercise = input("Do you exercise (yes/no): ").lower()
+        data['exercise'] = True if exercise == 'yes' else False
+
+       
+    except ValueError:
+        print("Invalid input! Using defaults")
+    
+    return data
+
+def calculate_risk(age, gender, health_data):
+    risk = 0
+    
+    if age > 65:
+        risk += 30
+    elif age > 50:
+        risk += 20
+    elif age > 35:
+        risk += 10
+    
+    if gender == 'M':
+        risk += 10
+    
+    if health_data['bp'] >= 180:
+        risk += 30
+        if health_data['bp'] >= 200:
+            risk += 10
+    elif health_data['bp'] >= 140:
+        risk += 20
+    elif health_data['bp'] >= 130:
+        risk += 10
+    
+    if health_data['cholesterol'] >= 240:
+        risk += 25
+    elif health_data['cholesterol'] >= 200:
+        risk += 15
+    
+    if health_data['sugar'] >= 126:
+        risk += 20
+    elif health_data['sugar'] >= 100:
+        risk += 10
+    
+    if health_data['heart_rate'] > 100 or health_data['heart_rate'] < 60:
+        risk += 10
+    
+    if health_data['smoking']:
+        risk += 20
+    if not health_data['exercise']:
+        risk += 15
+   
+    risk = min(risk, 100)
+    return risk
+
+def get_risk_level(score):
+    if score >= 70:
+        return "HIGH RISK"
+    elif score >= 40:
+        return "MODERATE RISK"
+    else:
+        return "NO RISK"
+
+def predict_symptoms(score, health_data):
+    predicted = []
+    if health_data['bp'] >= 140:
+        predicted.append("chest pain")
+        predicted.append("Dizziness")
+    if health_data['cholesterol'] >= 200:
+        predicted.append("Fatigue")
+    if health_data['sugar'] >= 126:
+        predicted.append("Nausea")
+        predicted.append("Sweating")
+    if health_data['heart_rate'] > 100 or health_data['heart_rate'] < 60:
+        predicted.append("Breathlessness")
+    if score >= 70:
+        predicted.extend(["chest pain", "Fatigue", "Breathlessness"])
+    return list(set(predicted))
+
+# --- Run the program directly ---
+name, age, gender = get_patient_info()
+health_data = get_health_data()
+score = calculate_risk(age, gender, health_data)
+risk_level = get_risk_level(score)
+symptom_predictions = predict_symptoms(score, health_data)
+
+patients[name] = {
+    "age": age,
+    "gender": gender,
+    "health_data": health_data,
+    "risk_score": score,
+    "risk_level": risk_level,
+    "predicted_symptoms": symptom_predictions
+}
+
+print("\n--- RESULT ---")
+print(f"Patient: {name}, Age: {age}, Gender: {gender}")
+print(f"Risk Score: {score}")
+print(f"Risk Level: {risk_level}")
+print(f"Possible Symptoms: {', '.join(symptom_predictions) if symptom_predictions else 'None predicted'}")
